@@ -1,10 +1,11 @@
 import requests
 from flask import Flask, render_template, request, redirect, url_for, flash
+import datetime as DT
 from flask_sqlalchemy import SQLAlchemy
 
 
 app = Flask(__name__)
-app.config['DEBUG'] = True
+app.config['debug'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///weather.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'k92OlA#c69Qv8m1!'
@@ -28,7 +29,9 @@ def get_forecast_data(city):
 
 def get_history_data(city):
     #url = f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{ city }/last7days?unitGroup=metric&key=MQPK63GN7CXF4XH2DH6BRD9C4'
-    url = f'https://api.weatherbit.io/v2.0/history/daily?city={ city }&start_date=2021-07-01&end_date=2021-07-07&key=7b9b5a6324124d17b5ed2891c83e0776'
+    today = DT.date.today()
+    week_ago = today - DT.timedelta(days=7)
+    url = f'https://api.weatherbit.io/v2.0/history/daily?city={ city }&start_date={ week_ago }&end_date={ today }&key=7b9b5a6324124d17b5ed2891c83e0776'
     r = requests.get(url).json()
     return r
 
@@ -138,7 +141,7 @@ def index3_get():
         data = get_history_data(city.name)
         
 
-    for key in range(0,6):
+    for key in range(0,7):
         history = {
             'city' : city.name,
             'date':  data['data'][key]['datetime'],
@@ -149,7 +152,7 @@ def index3_get():
         history_data.append(history)
 
     return render_template('historical_weather.html', history_data=history_data)
-
+    
 
 @app.route('/history', methods=['POST'])
 def index3_post():
@@ -166,3 +169,6 @@ def index3_post():
         flash('City does not exist in the world!')
 
     return redirect(url_for('index3_get'))
+
+
+
